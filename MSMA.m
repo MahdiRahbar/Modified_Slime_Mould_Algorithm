@@ -150,7 +150,7 @@ while  it <= Max_iter -1
 end
 
 end % end count run loop
-name = append('Results\SMA_',fobj,'_',Function_name);
+name = append('MSMA_Results\MSMA_',fobj,'_',Function_name);
 save(name, 'Convergence_curve');% Number
 % display(['Average Cost is: ',num2str(mean(CostMatrix))])
 end
