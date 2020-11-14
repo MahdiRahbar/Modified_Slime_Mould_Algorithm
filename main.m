@@ -38,7 +38,7 @@ N=30; % Number of search agents
 
 % Function_name='F13'; % Name of the test function, range from F1-F13
 
-T=500; % Maximum number of iterations
+T=2000; % Maximum number of iterations
 
 dimSize = 30;   %dimension size
 

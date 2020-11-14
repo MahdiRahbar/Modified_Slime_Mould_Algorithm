@@ -46,7 +46,7 @@ fitness_func = str2func('cec14_func');
 Number_of_runs = 30 ;
 Convergence_curve=zeros(Number_of_runs,Max_iter);  % Change this if you need less runs
 %%
-for Function_number=1:30
+for Function_number=1:5
     
 Function_name = append('F',string(Function_number));
     
@@ -59,10 +59,13 @@ AllFitness = inf*ones(N,1);%record the fitness of all slime mold
 weight = ones(N,dim);%fitness weight of each slime mold
 %Initialize the set of random solutions
 % X=initialization(N,dim,ub,lb);
-X = load(append('Populations\Pop_',Function_name,'_P100_D',string(dim))).Positions; 
-X = X(1:dim,:);
+
+
+% X = load(append('Populations\Pop_',Function_name,'_P100_D',string(dim))).Positions; 
+% X = X(1:dim,:);
 % X = load(append('input_data\M_',Function_name,'_D',string(dim))).Positions; 
-% X = X(1:dim,:);   M_1_D10
+X = load(append('input_data\M_',string(Function_number),'_D100.txt')); 
+X = X(1:N,1:dim); %  M_1_D10
 
 it=1;  %Number of iterations
 lb=ones(1,dim).*lb; % lower boundary 
