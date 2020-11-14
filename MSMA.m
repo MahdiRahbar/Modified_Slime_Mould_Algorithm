@@ -38,15 +38,19 @@
 
 % Max_iter: maximum iterations, N: populatoin size, Convergence_curve: Convergence curve
 % To run SMA: [Destination_fitness,bestPositions,Convergence_curve]=SMA(N,Max_iter,lb,ub,dim,fobj)
-function [Destination_fitness,bestPositions,Convergence_curve]=SMA(N,Max_iter,lb,ub,dim,fobj)
+function [Destination_fitness,bestPositions,Convergence_curve]=MSMA(N,Max_iter,lb,ub,dim,fobj)
 disp('SMA is now tackling your problem')
+h_h = 5 ;  %height of tree
+h_d = 4 ;  % number of nodes under each parent 
+
+level = t_level(N,h_h,h_d);
 
 fitness_func = str2func('cec14_func');
 %%
 Number_of_runs = 30 ;
 Convergence_curve=zeros(Number_of_runs,Max_iter);  % Change this if you need less runs
 %%
-for Function_number=1:30
+for Function_number=1:5
     
 Function_name = append('F',string(Function_number));
     
@@ -59,16 +63,21 @@ AllFitness = inf*ones(N,1);%record the fitness of all slime mold
 weight = ones(N,dim);%fitness weight of each slime mold
 %Initialize the set of random solutions
 % X=initialization(N,dim,ub,lb);
-X = load(append('Populations\Pop_',Function_name,'_P100_D',string(dim))).Positions; 
-X = X(1:dim,:);
+
+
+% X = load(append('Populations\Pop_',Function_name,'_P100_D',string(dim))).Positions; 
+% X = X(1:dim,:);
 % X = load(append('input_data\M_',Function_name,'_D',string(dim))).Positions; 
-% X = X(1:dim,:);   M_1_D10
+X = load(append('input_data\M_',string(Function_number),'_D100.txt')); 
+X = X(1:N,1:dim); %  M_1_D10
 
 it=1;  %Number of iterations
 lb=ones(1,dim).*lb; % lower boundary 
 ub=ones(1,dim).*ub; % upper boundary
 z=0.03; % parameter
 
+    
+    %sort the fitness
     for i=1:N
         % Check if solutions go outside the search space and bring them back
         Flag4ub=X(i,:)>ub;
@@ -77,13 +86,20 @@ z=0.03; % parameter
 %         AllFitness(i) = fobj(X(i,:));
         AllFitness(i)=feval(fitness_func,X(i,:)',Function_number);
     end
+    
     [SmellOrder,SmellIndex] = sort(AllFitness);  %Eq.(2.6)
     worstFitness = SmellOrder(N);
     bestFitness = SmellOrder(1);
 
-        Convergence_curve(count_run,1)=bestFitness;
+    S=bestFitness-worstFitness+eps;  % plus eps to avoid denominator zero
 
-%%
+for i = 1:N
+    sorted_X(i,:) = X(SmellIndex(i),:);
+end
+X = sorted_X;   
+h_archive = hierarchy(X,SmellOrder,dim,h_h,h_d, level);
+
+Convergence_curve(count_run,1)=bestFitness;
 
 
 % Main loop
@@ -104,6 +120,14 @@ while  it <= Max_iter -1
     bestFitness = SmellOrder(1);
 
     S=bestFitness-worstFitness+eps;  % plus eps to avoid denominator zero
+
+for i = 1:N
+    sorted_X(i,:) = X(SmellIndex(i),:);
+end
+
+X = sorted_X;   
+    
+h_archive = hierarchy(X,SmellOrder,dim,h_h,h_d, level);
 
     %calculate the fitness weight of each slime mold
     for i=1:N
@@ -129,8 +153,7 @@ while  it <= Max_iter -1
         if rand<z     %Eq.(2.7)
             X(i,:) = (ub-lb)*rand+lb;
         else
-%             p =tanh(abs(AllFitness(i)-Destination_fitness));  %Eq.(2.2)
-            p = i/N;
+            p =tanh(abs(AllFitness(i)-Destination_fitness));  %Eq.(2.2)
             vb = unifrnd(-a,a,1,dim);  %Eq.(2.3)
             vc = unifrnd(-b,b,1,dim);
             for j=1:dim
@@ -138,14 +161,9 @@ while  it <= Max_iter -1
                 A = randi([1,N]);  % two positions randomly selected from population
                 B = randi([1,N]);
                 if r<p    %Eq.(2.1)
-%                     X(i,j) = bestPositions(j)+ vb(j)*(weight(i,j)*X(A,j)-X(B,j));   % Current to Pbest
-%                     X(i,j) = X(i,j) + (bestPositions(j) - X(i,j)) ;  % + vb(j)*(weight(i,j)*X(A,j)-X(B,j))
-                    X(i,j) = X(i,j) + (weight(i,j)*X(A,j)-X(B,j));
+                    X(i,j) = bestPositions(j)+ vb(j)*(weight(i,j)*X(A,j)-X(B,j));
                 else
-%                     X(i,j) = vc(j)*X(i,j);  % CLPSO
-                     X(i,j) =  bestPositions(j) + vb(j)*(weight(i,j)*X(A,j)-X(B,j)); 
-
-
+                    X(i,j) = vc(j)*X(i,j);
                 end
             end
         end
